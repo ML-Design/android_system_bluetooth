@@ -226,6 +226,25 @@ parse_bdaddr(char *optarg)
 }
 
 int
+parse_bdaddr_p500(char *optarg)
+{
+	int bd_addr[6];
+	int i;
+
+	sscanf(optarg, "%02X%02X%02X%02X%02X%02X",
+		&bd_addr[5], &bd_addr[4], &bd_addr[3],
+		&bd_addr[2], &bd_addr[1], &bd_addr[0]);
+
+	for (i = 0; i < 6; i++) {
+		hci_write_bd_addr[4 + i] = bd_addr[i];
+	}
+
+	bdaddr_flag = 1;	
+
+	return(0);
+}
+
+int
 parse_enable_lpm(char *optarg)
 {
 	enable_lpm = 1;
@@ -509,6 +528,13 @@ read_default_bdaddr()
 	int fd;
 	char path[PROPERTY_VALUE_MAX];
 	char bdaddr[18];
+
+	property_get("service.brcm.bt.mac", bdaddr, "");
+	if (strlen(bdaddr) == 12) {
+    	printf("Read default bdaddr of %s\n", bdaddr);
+	    parse_bdaddr_p500(bdaddr);
+	    return;
+	}
 
 	property_get("ro.bt.bdaddr_path", path, "");
 	if (path[0] == 0)
